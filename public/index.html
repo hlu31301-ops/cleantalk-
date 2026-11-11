@@ -3,33 +3,69 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CleanTalk - AI 악플 판별기</title>
+  <title>CleanTalk - AI 악플 판별기 & 클린 순화기</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <!-- ===== 1. 상단 공지 바 (Top Banner) ===== -->
   <div class="top-banner">
-    건전한 댓글 문화를 함께 만들어가는 AI 악플 판별 서비스 🐾
+    건전한 댓글 문화를 함께 만들어가는 AI 악플 판별 & 순화 서비스 🐾
   </div>
 
   <!-- ===== 2. 네비게이션 헤더 ===== -->
   <header class="header">
     <div class="header-inner">
       <a href="#" class="logo">🐾 CleanTalk</a>
-      <nav class="nav">
-        <a href="#analyze-section">악플 판별기</a>
-        <a href="#feedback-section">피드백 남기기</a>
-      </nav>
+      <div class="header-right">
+        <!-- '클린 지킴이' 뱃지 표시 영역 -->
+        <div class="user-badge-chip" id="user-badge-chip" title="착한 댓글을 남겨 뱃지를 모아보세요!">
+          <span class="badge-icon" id="badge-icon">🌱</span>
+          <span class="badge-title" id="badge-title">새싹 지킴이</span>
+          <span class="badge-streak" id="badge-streak">(0회 연속)</span>
+        </div>
+        <nav class="nav">
+          <a href="#analyze-section">악플 판별기</a>
+          <a href="#feedback-section">피드백 남기기</a>
+        </nav>
+      </div>
     </div>
   </header>
 
   <main>
-    <!-- ===== 3. 메인 히어로: 신호등 + 살아 움직이는 강아지 판별 섹션 ===== -->
+    <!-- ===== 3. 메인 히어로 섹션 ===== -->
     <section class="hero-section" id="analyze-section">
       <div class="hero-inner">
+        
+        <!-- 실시간 클린 현황판 위젯 (미니 대시보드) -->
+        <div class="dashboard-widget">
+          <div class="stat-card">
+            <span class="stat-icon">🛡️</span>
+            <div class="stat-info">
+              <span class="stat-label">오늘 판별한 댓글</span>
+              <strong class="stat-value" id="stat-total">0</strong>
+            </div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-card">
+            <span class="stat-icon">🚨</span>
+            <div class="stat-info">
+              <span class="stat-label">차단한 악플</span>
+              <strong class="stat-value text-red" id="stat-malicious">0</strong>
+            </div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-card">
+            <span class="stat-icon">💖</span>
+            <div class="stat-info">
+              <span class="stat-label">지켜낸 따뜻한 말</span>
+              <strong class="stat-value text-green" id="stat-clean">0</strong>
+            </div>
+          </div>
+        </div>
+
         <h1 class="hero-title">우리의 작은 배려로<br>함께 만드는 건강한 댓글 문화</h1>
-        <p class="hero-subtitle">댓글을 입력하면 AI와 강아지가 실시간으로 반응하여 악플을 판별해 드립니다.</p>
+        <p class="hero-subtitle">댓글을 입력하면 AI와 강아지가 실시간으로 반응하여 악플을 판별하고 예쁜 말로 바꿔드립니다.</p>
 
         <!-- 판별 메인 카드 -->
         <div class="analyze-card">
@@ -50,27 +86,18 @@
               <!-- (1) 평소 대기 & 타이핑 모션 강아지 (숨쉬기, 눈깜빡임, 고개갸웃) -->
               <div class="dog-wrapper" id="dog-idle-wrap">
                 <svg class="dog-svg dog-breathing" id="dog-idle-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-                  <!-- 귀 (왼쪽/오른쪽) -->
                   <ellipse class="dog-ear-left" cx="30" cy="45" rx="16" ry="22" fill="#C8956C" />
                   <ellipse class="dog-ear-right" cx="90" cy="45" rx="16" ry="22" fill="#C8956C" />
-                  <!-- 머리 -->
                   <circle cx="60" cy="60" r="38" fill="#E8B887" />
-                  <!-- 얼굴 흰 부분 -->
                   <ellipse cx="60" cy="68" rx="24" ry="20" fill="#FFF3E0" />
-                  <!-- 눈 (깜빡임 애니메이션 적용 대상) -->
                   <g class="dog-eyes" id="dog-idle-eyes">
-                    <!-- 왼쪽 눈 -->
                     <ellipse cx="46" cy="55" rx="5" ry="6" fill="#333" />
                     <circle cx="48" cy="53" r="1.5" fill="white" />
-                    <!-- 오른쪽 눈 -->
                     <ellipse cx="74" cy="55" rx="5" ry="6" fill="#333" />
                     <circle cx="76" cy="53" r="1.5" fill="white" />
                   </g>
-                  <!-- 코 -->
                   <ellipse cx="60" cy="66" rx="7" ry="5" fill="#8B4513" />
-                  <!-- 입 (미소) -->
                   <path d="M 50 74 Q 60 80 70 74" stroke="#8B4513" stroke-width="2.5" fill="none" stroke-linecap="round" />
-                  <!-- 핑크 볼터치 -->
                   <ellipse cx="38" cy="68" rx="8" ry="5" fill="#FFB6C1" opacity="0.6" />
                   <ellipse cx="82" cy="68" rx="8" ry="5" fill="#FFB6C1" opacity="0.6" />
                 </svg>
@@ -79,7 +106,6 @@
               <!-- (2) AI 분석 중 강아지 (꼬리 흔들기 + 돋보기) -->
               <div class="dog-wrapper hidden" id="dog-analyzing-wrap">
                 <svg class="dog-analyzing-svg" viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">
-                  <!-- 살랑살랑 꼬리 -->
                   <g class="dog-tail-wag" transform-origin="30 85">
                     <path d="M 30 85 Q 10 70 5 50 Q 2 38 12 35 Q 22 32 25 45 Q 28 58 38 70 Z" fill="#C8956C" />
                   </g>
@@ -100,45 +126,37 @@
                 </svg>
               </div>
 
-              <!-- (3) 🚨 악플 감지 시: 화난 강아지 (부들부들 분노 모션 + 찡그린 얼굴) -->
+              <!-- (3) 🚨 악플 감지 시: 화난 강아지 (부들부들 분노 모션) -->
               <div class="dog-wrapper hidden" id="dog-angry-wrap">
                 <svg class="dog-svg dog-angry-motion" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
                   <ellipse cx="30" cy="45" rx="16" ry="22" fill="#C8956C" transform="rotate(-15 30 45)" />
                   <ellipse cx="90" cy="45" rx="16" ry="22" fill="#C8956C" transform="rotate(15 90 45)" />
                   <circle cx="60" cy="60" r="38" fill="#E8B887" />
                   <ellipse cx="60" cy="68" rx="24" ry="20" fill="#FFF3E0" />
-                  <!-- 화난 눈썹 -->
                   <line x1="38" y1="47" x2="52" y2="51" stroke="#333" stroke-width="3.5" stroke-linecap="round" />
                   <line x1="68" y1="51" x2="82" y2="47" stroke="#333" stroke-width="3.5" stroke-linecap="round" />
-                  <!-- 찡그린 눈 -->
                   <ellipse cx="46" cy="56" rx="5" ry="5" fill="#333" />
                   <ellipse cx="74" cy="56" rx="5" ry="5" fill="#333" />
                   <ellipse cx="60" cy="66" rx="7" ry="5" fill="#8B4513" />
-                  <!-- 뾰루퉁 화난 입 -->
                   <path d="M 50 76 Q 60 70 70 76" stroke="#8B4513" stroke-width="3" fill="none" stroke-linecap="round" />
-                  <!-- 빨갛게 달아오른 볼 (분노) -->
                   <ellipse class="angry-blush" cx="36" cy="68" rx="11" ry="8" fill="#EF4444" opacity="0.6" />
                   <ellipse class="angry-blush" cx="84" cy="68" rx="11" ry="8" fill="#EF4444" opacity="0.6" />
                 </svg>
               </div>
 
-              <!-- (4) ✅ 착한 댓글 감지 시: 활짝 웃는 강아지 (신나서 콩콩 점프 + 하트) -->
+              <!-- (4) ✅ 착한 댓글 감지 시: 활짝 웃는 강아지 (통통 점프 + 하트) -->
               <div class="dog-wrapper hidden" id="dog-happy-wrap">
                 <svg class="dog-svg dog-happy-motion" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
                   <ellipse cx="30" cy="45" rx="16" ry="22" fill="#C8956C" transform="rotate(-15 30 45)" />
                   <ellipse cx="90" cy="45" rx="16" ry="22" fill="#C8956C" transform="rotate(15 90 45)" />
                   <circle cx="60" cy="60" r="38" fill="#E8B887" />
                   <ellipse cx="60" cy="68" rx="24" ry="20" fill="#FFF3E0" />
-                  <!-- 방긋 웃는 눈 (초승달) -->
                   <path d="M 40 54 Q 46 47 52 54" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round" />
                   <path d="M 68 54 Q 74 47 80 54" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round" />
                   <ellipse cx="60" cy="66" rx="7" ry="5" fill="#8B4513" />
-                  <!-- 활짝 벌린 입 -->
                   <path d="M 50 72 Q 60 84 70 72" stroke="#8B4513" stroke-width="3" fill="#FF8DA1" stroke-linecap="round" />
-                  <!-- 사랑스러운 핑크 볼터치 -->
                   <ellipse cx="37" cy="66" rx="9" ry="6" fill="#FF69B4" opacity="0.6" />
                   <ellipse cx="83" cy="66" rx="9" ry="6" fill="#FF69B4" opacity="0.6" />
-                  <!-- 공중에 떠다니는 하트들 -->
                   <text class="floating-heart heart-left" x="8" y="38" font-size="20">❤️</text>
                   <text class="floating-heart heart-right" x="92" y="32" font-size="16">💕</text>
                 </svg>
@@ -146,16 +164,44 @@
 
             </div>
 
-            <!-- 강아지 말풍선 (실시간 메시지 출력) -->
+            <!-- 강아지 말풍선 -->
             <div class="speech-bubble" id="speech-bubble">
               <p class="bubble-text" id="bubble-text">댓글을 입력하시면 제가 실시간으로 지켜보며 판별해 드릴게요! 🐾</p>
             </div>
           </div>
 
-          <!-- 판별 결과 문구 영역 (악플/정상 텍스트) -->
+          <!-- 판별 결과 문구 영역 -->
           <div class="verdict-banner hidden" id="verdict-banner">
+            
+            <!-- 악플 위험도 게이지 바 (0~100%) -->
+            <div class="gauge-section">
+              <div class="gauge-header">
+                <span class="gauge-label">📊 악플 위험도 지수</span>
+                <span class="gauge-score" id="gauge-score">0%</span>
+              </div>
+              <div class="gauge-track">
+                <div class="gauge-fill" id="gauge-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- 분석 태그 뱃지들 -->
+            <div class="result-tags" id="result-tags"></div>
+
             <h2 class="verdict-title" id="verdict-title">⚠️ 악플입니다.</h2>
             <p class="verdict-reason" id="verdict-reason">사유를 분석하고 있습니다.</p>
+
+            <!-- 🪄 AI 예쁜 말 순화기 제안 카드 (악플 감지 시 표시) -->
+            <div class="clean-suggest-card hidden" id="clean-suggest-card">
+              <div class="suggest-header">
+                <span class="suggest-badge">🪄 AI 예쁜 말 순화기</span>
+                <span class="suggest-desc">이렇게 따뜻하게 바꿔보는 건 어떨까요?</span>
+              </div>
+              <p class="suggest-text" id="suggest-text">"추천 순화 문장이 여기에 표시됩니다."</p>
+              <button class="apply-clean-btn" id="apply-clean-btn">
+                ✨ 이 예쁜 말로 바꾸기 (클릭)
+              </button>
+            </div>
+
             <p class="retry-hint hidden" id="retry-hint">✏️ 다시 입력해주세요</p>
           </div>
 
@@ -181,7 +227,7 @@
     <!-- ===== 4. 하단 서비스 피드백 섹션 (Supabase 연동) ===== -->
     <section class="feedback-section" id="feedback-section">
       <div class="feedback-inner">
-        <!-- 피드백 작성 폼 (좌측) -->
+        <!-- 피드백 작성 폼 -->
         <div class="feedback-form-card">
           <h2 class="feedback-title">서비스 피드백 남기기</h2>
           <p class="feedback-subtitle">로그인 없이 누구나 자유롭게 의견을 남길 수 있어요!</p>
@@ -205,7 +251,7 @@
           </div>
         </div>
 
-        <!-- 피드백 목록 (우측) -->
+        <!-- 피드백 목록 -->
         <div class="feedback-list-card">
           <div class="list-header">
             <h3 class="list-title">📋 모든 피드백</h3>
@@ -221,10 +267,9 @@
 
   <!-- ===== 5. 최하단 푸터 ===== -->
   <footer class="footer">
-    <p>© 2026 CleanTalk - AI 악플 판별 서비스. 따뜻한 댓글 문화를 만들어갑니다 🐾</p>
+    <p>© 2026 CleanTalk - AI 악플 판별 및 순화 서비스. 따뜻한 댓글 문화를 만들어갑니다 🐾</p>
   </footer>
 
-  <!-- 프론트엔드 실시간 인터랙션 스크립트 연결 -->
   <script src="app.js"></script>
 </body>
 </html>
