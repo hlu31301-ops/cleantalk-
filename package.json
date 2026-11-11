@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "build": "echo 'No build required'",
     "dev": "vercel dev",
     "start": "node server.js"
   },
