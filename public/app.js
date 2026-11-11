@@ -1,16 +1,22 @@
 // =====================================================
 // app.js - CleanTalk 프리미엄 반응형 AI 악플 판별기
 // 핵심 기능:
-//   1. 신호등(빨간불/초록불) 시각 피드백
-//   2. 살아 숨쉬며 타이핑/판별 결과에 반응하는 인터랙티브 강아지
-//   3. 악플 위험도 게이지 바 (0~100%) & AI 분석 태그
-//   4. 🪄 AI 예쁜 말 순화기 (대체 문장 제안 & 원클릭 교체)
-//   5. 🏆 클린 지킴이 연속 착한 댓글 뱃지 시스템
-//   6. 📊 실시간 클린 현황판 (오늘 판별/차단/통과 통계)
-//   7. Supabase 실시간 피드백 연동
+//   1. 🌙 원클릭 다크 모드 토글 및 자동 저장 (LocalStorage)
+//   2. 신호등(빨간불/초록불) 시각 피드백
+//   3. 살아 숨쉬며 타이핑/판별 결과에 반응하는 인터랙티브 강아지
+//   4. 악플 위험도 게이지 바 (0~100%) & AI 분석 태그
+//   5. 🪄 AI 예쁜 말 순화기 (대체 문장 제안 & 원클릭 교체)
+//   6. 🏆 클린 지킴이 연속 착한 댓글 뱃지 시스템
+//   7. 📊 실시간 클린 현황판 (오늘 판별/차단/통과 통계)
+//   8. Supabase 실시간 피드백 연동
 // =====================================================
 
 // ── 1. DOM 요소 가져오기 ──────────────────────────────
+
+// 🌙 다크 모드 토글
+const themeToggleBtn  = document.getElementById("theme-toggle-btn");
+const themeIcon       = document.getElementById("theme-icon");
+const themeText       = document.getElementById("theme-text");
 
 // 신호등 전구
 const redLight        = document.getElementById("red-light");
@@ -63,20 +69,55 @@ const feedbackStatus  = document.getElementById("feedback-status");
 const feedbackList    = document.getElementById("feedback-list");
 
 
-// ── 2. 로컬 통계 & 뱃지 시스템 (LocalStorage) ─────────
+// ── 2. 🌙 다크 모드 제어 로직 ─────────────────────────
 
 /**
- * 저장된 통계 및 뱃지 데이터 불러오기
+ * 테마를 적용하고 LocalStorage에 저장하는 함수
+ * @param {"dark" | "light"} theme 
  */
+function applyTheme(theme) {
+  if (theme === "dark") {
+    document.body.classList.add("dark-mode");
+    themeIcon.textContent = "☀️";
+    themeText.textContent = "라이트 모드";
+    localStorage.setItem("cleantalk_theme", "dark");
+  } else {
+    document.body.classList.remove("dark-mode");
+    themeIcon.textContent = "🌙";
+    themeText.textContent = "다크 모드";
+    localStorage.setItem("cleantalk_theme", "light");
+  }
+}
+
+/**
+ * 페이지 로드 시 저장된 테마 또는 시스템 기본 설정 불러오기
+ */
+function initTheme() {
+  const savedTheme = localStorage.getItem("cleantalk_theme");
+  if (savedTheme) {
+    applyTheme(savedTheme);
+  } else {
+    // 사용자의 OS/브라우저가 다크 모드인지 확인
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    applyTheme(prefersDark ? "dark" : "light");
+  }
+}
+
+// 다크 모드 토글 버튼 클릭 이벤트
+themeToggleBtn.addEventListener("click", () => {
+  const isDark = document.body.classList.contains("dark-mode");
+  applyTheme(isDark ? "light" : "dark");
+});
+
+
+// ── 3. 로컬 통계 & 뱃지 시스템 (LocalStorage) ─────────
+
 function getStorageData() {
   const stats = JSON.parse(localStorage.getItem("cleantalk_stats") || '{"total":0,"malicious":0,"clean":0}');
   const streak = parseInt(localStorage.getItem("cleantalk_streak") || "0", 10);
   return { stats, streak };
 }
 
-/**
- * 뱃지 UI 갱신 함수
- */
 function updateBadgeUI(streak) {
   badgeStreak.textContent = `(${streak}회 연속)`;
 
@@ -95,9 +136,6 @@ function updateBadgeUI(streak) {
   }
 }
 
-/**
- * 실시간 현황판 UI 갱신 함수
- */
 function updateStatsUI(stats) {
   statTotal.textContent = stats.total;
   statMalicious.textContent = stats.malicious;
@@ -105,14 +143,11 @@ function updateStatsUI(stats) {
 }
 
 
-// ── 3. 강아지 모션 & 신호등 제어 함수 ─────────────────
+// ── 4. 강아지 모션 & 신호등 제어 함수 ─────────────────
 
 let typingTimer = null;
 let currentVerdictState = null;
 
-/**
- * 강아지 모션 및 표정 전환
- */
 function setDogState(state, customMessage = "") {
   dogIdleWrap.classList.add("hidden");
   dogAnalyzingWrap.classList.add("hidden");
@@ -149,9 +184,6 @@ function setDogState(state, customMessage = "") {
   }
 }
 
-/**
- * 신호등 제어
- */
 function setTrafficLight(lightColor) {
   redLight.classList.remove("on");
   greenLight.classList.remove("on");
@@ -164,7 +196,7 @@ function setTrafficLight(lightColor) {
 }
 
 
-// ── 4. 타이핑 인터랙션 ────────────────────────────────
+// ── 5. 타이핑 인터랙션 ────────────────────────────────
 
 commentInput.addEventListener("input", () => {
   const text = commentInput.value.trim();
@@ -198,7 +230,7 @@ commentInput.addEventListener("keydown", (e) => {
 });
 
 
-// ── 5. 악플 판별 & 순화 실행 로직 (/api/analyze) ──────
+// ── 6. 악플 판별 & 순화 실행 로직 (/api/analyze) ──────
 
 analyzeBtn.addEventListener("click", async () => {
   const comment = commentInput.value.trim();
@@ -209,7 +241,6 @@ analyzeBtn.addEventListener("click", async () => {
     return;
   }
 
-  // 로딩 시작
   clearTimeout(typingTimer);
   analyzeBtn.disabled = true;
   analyzeBtn.textContent = "분석 중...";
@@ -234,12 +265,11 @@ analyzeBtn.addEventListener("click", async () => {
 
     currentVerdictState = data.isMalicious;
 
-    // ── 1. 위험도 게이지 바 애니메이션 설정 ──
+    // 위험도 게이지 바 애니메이션
     const score = Math.max(0, Math.min(100, Math.round(data.toxicityScore || (data.isMalicious ? 85 : 10))));
     gaugeScore.textContent = `${score}%`;
     gaugeFill.style.width = `${score}%`;
 
-    // 게이지 색상 분기
     if (score >= 70) {
       gaugeFill.style.backgroundColor = "var(--status-red)";
       gaugeScore.style.color = "var(--status-red)";
@@ -251,7 +281,7 @@ analyzeBtn.addEventListener("click", async () => {
       gaugeScore.style.color = "var(--status-green)";
     }
 
-    // ── 2. 감지 태그 렌더링 ──
+    // 감지 태그 렌더링
     resultTags.innerHTML = "";
     const tags = data.tags && data.tags.length > 0 
       ? data.tags 
@@ -264,14 +294,13 @@ analyzeBtn.addEventListener("click", async () => {
       resultTags.appendChild(tagSpan);
     });
 
-    // ── 3. 통계 및 뱃지 업데이트 ──
+    // 통계 & 뱃지 갱신
     const storage = getStorageData();
     storage.stats.total += 1;
 
     if (data.isMalicious === true) {
-      // 🚨 [악플인 경우]
       storage.stats.malicious += 1;
-      storage.streak = 0; // 연속 기록 리셋
+      storage.streak = 0;
 
       setTrafficLight("red");
       setDogState("angry", `경고! ${data.reason || "악성 표현이 감지되었습니다."}`);
@@ -280,12 +309,11 @@ analyzeBtn.addEventListener("click", async () => {
       verdictTitle.textContent = "⚠️ 악플입니다.";
       verdictReason.textContent = `사유: ${data.reason}`;
 
-      // 🪄 예쁜 말 순화기 제안 카드 표출
+      // 예쁜 말 순화기 제안
       if (data.suggestedCleanText) {
         suggestText.textContent = `"${data.suggestedCleanText}"`;
         cleanSuggestCard.classList.remove("hidden");
 
-        // [이 예쁜 말로 바꾸기] 클릭 핸들러
         applyCleanBtn.onclick = () => {
           commentInput.value = data.suggestedCleanText;
           cleanSuggestCard.classList.add("hidden");
@@ -295,9 +323,8 @@ analyzeBtn.addEventListener("click", async () => {
       }
 
     } else {
-      // ✅ [착한 댓글인 경우]
       storage.stats.clean += 1;
-      storage.streak += 1; // 연속 기록 증가
+      storage.streak += 1;
 
       setTrafficLight("green");
       setDogState("happy", `통과! ${data.reason || "따뜻하고 긍정적인 문장입니다."}`);
@@ -311,7 +338,6 @@ analyzeBtn.addEventListener("click", async () => {
       commentInput.focus();
     }
 
-    // 로컬 스토리지 저장 및 UI 갱신
     localStorage.setItem("cleantalk_stats", JSON.stringify(storage.stats));
     localStorage.setItem("cleantalk_streak", storage.streak.toString());
     updateStatsUI(storage.stats);
@@ -330,7 +356,7 @@ analyzeBtn.addEventListener("click", async () => {
 });
 
 
-// ── 6. 하단 서비스 피드백 기능 (Supabase 연동) ────────
+// ── 7. 하단 서비스 피드백 기능 (Supabase 연동) ────────
 
 function formatFeedbackDate(isoString) {
   if (!isoString) return "방금 전";
@@ -429,7 +455,7 @@ feedbackBtn.addEventListener("click", async () => {
     }
 
     feedbackStatus.textContent = "✅ 소중한 피드백이 등록되었습니다! 감사합니다 🐾";
-    feedbackStatus.style.color = "#0B4F28";
+    feedbackStatus.style.color = "var(--primary-green)";
     feedbackNickname.value = "";
     feedbackContent.value = "";
 
@@ -446,9 +472,12 @@ feedbackBtn.addEventListener("click", async () => {
 });
 
 
-// ── 7. 페이지 로드 초기화 ────────────────────────────
+// ── 8. 페이지 로드 초기화 ────────────────────────────
 
 document.addEventListener("DOMContentLoaded", () => {
+  // 다크 모드 설정 불러오기
+  initTheme();
+
   setDogState("idle");
   setTrafficLight("none");
   

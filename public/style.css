@@ -1,14 +1,15 @@
 /* =====================================================
    style.css - CleanTalk 전체 스타일시트
-   테마: 딥 그린(#0B4F28) + 옐로우(#FACC15)
+   테마: 딥 그린(#0B4F28) + 옐로우(#FACC15) + 다크모드
    신규 기능:
+     - 🌙 완전한 다크 모드 지원 (body.dark-mode)
      - 실시간 클린 현황판 대시보드
      - 클린 지킴이 연속 뱃지
      - 위험도 게이지 바 & 감지 태그
      - AI 예쁜 말 순화기 카드
    ===================================================== */
 
-/* ── 1. 전역 초기화 및 CSS 변수 ── */
+/* ── 1. 전역 초기화 및 CSS 변수 (라이트 모드 기본) ── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -28,9 +29,35 @@
   --status-yellow: #F59E0B;
   --status-green: #22C55E;
   --border-color: #D1FAE5;
+  --input-bg: #FFFFFF;
+  --stage-bg: #F0FDF4;
+  --stage-border: #BBF7D0;
+  --bubble-bg: #FFFFFF;
+  --card-sub-bg: #FAFCF9;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 6px -1px rgba(11, 79, 40, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
   --shadow-lg: 0 10px 25px -5px rgba(11, 79, 40, 0.12);
+}
+
+/* ── 1-1. 🌙 다크 모드 테마 변수 (body.dark-mode) ── */
+body.dark-mode {
+  --primary-green: #22C55E;
+  --secondary-green: #4ADE80;
+  --light-green: #064E3B;
+  --accent-yellow: #FACC15;
+  --bg-light: #0B1319;         /* 딥 다크 배경 */
+  --card-bg: #15222B;          /* 다크 카드 배경 */
+  --text-dark: #F1F5F9;        /* 밝은 본문 텍스트 */
+  --text-muted: #94A3B8;       /* 은은한 보조 텍스트 */
+  --border-color: #1E3A2F;     /* 다크 그린 테두리 */
+  --input-bg: #0F1921;         /* 어두운 입력창 배경 */
+  --stage-bg: #0D2319;         /* 다크 스테이지 배경 */
+  --stage-border: #164E36;
+  --bubble-bg: #15222B;
+  --card-sub-bg: #1A2A35;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
 }
 
 body {
@@ -38,6 +65,7 @@ body {
   background-color: var(--bg-light);
   color: var(--text-dark);
   line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .hidden {
@@ -46,7 +74,7 @@ body {
 
 /* ── 2. 상단 공지 바 ── */
 .top-banner {
-  background-color: var(--primary-green);
+  background-color: #0B4F28;
   color: #FFFFFF;
   text-align: center;
   padding: 8px 16px;
@@ -55,7 +83,12 @@ body {
   letter-spacing: 0.02em;
 }
 
-/* ── 3. 네비게이션 헤더 & 지킴이 뱃지 ── */
+body.dark-mode .top-banner {
+  background-color: #064E3B;
+  color: #D1FAE5;
+}
+
+/* ── 3. 네비게이션 헤더 ── */
 .header {
   background-color: var(--card-bg);
   border-bottom: 2px solid var(--border-color);
@@ -63,10 +96,11 @@ body {
   top: 0;
   z-index: 100;
   box-shadow: var(--shadow-sm);
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 .header-inner {
-  max-width: 1040px;
+  max-width: 1060px;
   margin: 0 auto;
   padding: 0 24px;
   height: 64px;
@@ -85,7 +119,7 @@ body {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 
 /* 클린 지킴이 뱃지 칩 */
@@ -97,7 +131,7 @@ body {
   border: 1.5px solid #FDE047;
   padding: 5px 12px;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: #854D0E;
   box-shadow: 0 1px 3px rgba(250, 204, 21, 0.2);
@@ -105,30 +139,48 @@ body {
   cursor: pointer;
 }
 
-.user-badge-chip:hover {
-  transform: scale(1.04);
+body.dark-mode .user-badge-chip {
+  background-color: #362E08;
+  border-color: #854D0E;
+  color: #FDE047;
 }
 
-.badge-icon {
-  font-size: 1.05rem;
+.user-badge-chip:hover { transform: scale(1.04); }
+.badge-icon { font-size: 1rem; }
+.badge-streak { font-size: 0.72rem; opacity: 0.85; }
+
+/* 🌙 다크 모드 토글 버튼 */
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--input-bg);
+  border: 1.5px solid var(--border-color);
+  color: var(--text-dark);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.15s, border-color 0.2s;
 }
 
-.badge-streak {
-  font-size: 0.75rem;
-  color: #A16207;
+.theme-toggle-btn:hover {
+  transform: translateY(-1px);
+  background-color: var(--border-color);
 }
 
 .nav {
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 
 .nav a {
   text-decoration: none;
   color: var(--text-dark);
   font-weight: 600;
-  font-size: 0.95rem;
-  padding: 6px 14px;
+  font-size: 0.9rem;
+  padding: 6px 12px;
   border-radius: 20px;
   transition: background-color 0.2s, color 0.2s;
 }
@@ -149,7 +201,7 @@ body {
   text-align: center;
 }
 
-/* ── 4-1. 실시간 클린 현황판 위젯 (미니 대시보드) ── */
+/* ── 4-1. 실시간 클린 현황판 위젯 ── */
 .dashboard-widget {
   background-color: var(--card-bg);
   border: 1.5px solid var(--border-color);
@@ -160,6 +212,7 @@ body {
   justify-content: space-around;
   margin-bottom: 28px;
   box-shadow: var(--shadow-sm);
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 .stat-card {
@@ -169,21 +222,13 @@ body {
   text-align: left;
 }
 
-.stat-icon {
-  font-size: 1.5rem;
-}
-
-.stat-info {
-  display: flex;
-  flex-direction: column;
-}
-
+.stat-icon { font-size: 1.5rem; }
+.stat-info { display: flex; flex-direction: column; }
 .stat-label {
   font-size: 0.75rem;
   color: var(--text-muted);
   font-weight: 600;
 }
-
 .stat-value {
   font-size: 1.25rem;
   font-weight: 800;
@@ -196,7 +241,7 @@ body {
 .stat-divider {
   width: 1px;
   height: 36px;
-  background-color: #E5E7EB;
+  background-color: var(--border-color);
 }
 
 .hero-title {
@@ -223,6 +268,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 22px;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 /* ── 6. 신호등 & 강아지 스테이지 ── */
@@ -231,18 +277,15 @@ body {
   align-items: center;
   justify-content: center;
   gap: 24px;
-  background-color: #F0FDF4;
+  background-color: var(--stage-bg);
   border-radius: 16px;
   padding: 24px 20px;
-  border: 1.5px solid #BBF7D0;
+  border: 1.5px solid var(--stage-border);
   flex-wrap: wrap;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
-/* 2구 신호등 */
-.traffic-light-wrap {
-  flex-shrink: 0;
-}
-
+.traffic-light-wrap { flex-shrink: 0; }
 .traffic-light {
   width: 54px;
   height: 110px;
@@ -282,7 +325,6 @@ body {
   box-shadow: 0 0 16px var(--status-green), 0 0 32px rgba(34, 197, 94, 0.6);
 }
 
-/* 강아지 캐릭터 */
 .dog-stage {
   width: 140px;
   height: 140px;
@@ -372,7 +414,7 @@ body {
 
 /* 강아지 말풍선 */
 .speech-bubble {
-  background-color: var(--card-bg);
+  background-color: var(--bubble-bg);
   border: 1.5px solid #86EFAC;
   border-radius: 14px;
   padding: 14px 18px;
@@ -380,6 +422,11 @@ body {
   position: relative;
   box-shadow: var(--shadow-sm);
   text-align: left;
+  transition: background-color 0.3s;
+}
+
+body.dark-mode .speech-bubble {
+  border-color: #166534;
 }
 
 .speech-bubble::before {
@@ -391,6 +438,10 @@ body {
   border-width: 6px 10px 6px 0;
   border-style: solid;
   border-color: transparent #86EFAC transparent transparent;
+}
+
+body.dark-mode .speech-bubble::before {
+  border-color: transparent #166534 transparent transparent;
 }
 
 .bubble-text {
@@ -418,8 +469,8 @@ body {
 
 /* ── 7-1. 악플 위험도 게이지 바 ── */
 .gauge-section {
-  background-color: #FFFFFF;
-  border: 1.5px solid #E5E7EB;
+  background-color: var(--input-bg);
+  border: 1.5px solid var(--border-color);
   border-radius: 12px;
   padding: 12px 16px;
 }
@@ -441,9 +492,13 @@ body {
 .gauge-track {
   width: 100%;
   height: 10px;
-  background-color: #F3F4F6;
+  background-color: #E5E7EB;
   border-radius: 5px;
   overflow: hidden;
+}
+
+body.dark-mode .gauge-track {
+  background-color: #1E293B;
 }
 
 .gauge-fill {
@@ -465,8 +520,6 @@ body {
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 20px;
-  background-color: #F3F4F6;
-  color: #374151;
 }
 
 .tag-badge.tag-malicious {
@@ -475,15 +528,32 @@ body {
   border: 1px solid #FCA5A5;
 }
 
+body.dark-mode .tag-badge.tag-malicious {
+  background-color: #450A0A;
+  color: #FCA5A5;
+  border-color: #7F1D1D;
+}
+
 .tag-badge.tag-clean {
   background-color: #DCFCE7;
   color: #15803D;
   border: 1px solid #86EFAC;
 }
 
+body.dark-mode .tag-badge.tag-clean {
+  background-color: #052E16;
+  color: #86EFAC;
+  border-color: #14532D;
+}
+
 .verdict-malicious {
   background-color: #FEF2F2;
   border: 2px solid var(--status-red);
+}
+
+body.dark-mode .verdict-malicious {
+  background-color: #2D1214;
+  border-color: #991B1B;
 }
 
 .verdict-malicious .verdict-title {
@@ -498,9 +568,18 @@ body {
   font-size: 0.95rem;
 }
 
+body.dark-mode .verdict-malicious .verdict-reason {
+  color: #F87171;
+}
+
 .verdict-clean {
   background-color: #F0FDF4;
   border: 2px solid var(--status-green);
+}
+
+body.dark-mode .verdict-clean {
+  background-color: #062817;
+  border-color: #166534;
 }
 
 .verdict-clean .verdict-title {
@@ -515,9 +594,13 @@ body {
   font-size: 0.95rem;
 }
 
+body.dark-mode .verdict-clean .verdict-reason {
+  color: #4ADE80;
+}
+
 /* ── 7-3. 🪄 AI 예쁜 말 순화기 제안 카드 ── */
 .clean-suggest-card {
-  background-color: #FFFFFF;
+  background-color: var(--card-bg);
   border: 2px dashed #F59E0B;
   border-radius: 14px;
   padding: 16px 18px;
@@ -545,21 +628,36 @@ body {
   border-radius: 6px;
 }
 
+body.dark-mode .suggest-badge {
+  background-color: #451A03;
+  color: #FCD34D;
+}
+
 .suggest-desc {
   font-size: 0.85rem;
   color: #78350F;
   font-weight: 600;
 }
 
+body.dark-mode .suggest-desc {
+  color: #FDE68A;
+}
+
 .suggest-text {
   font-size: 1.02rem;
   font-weight: 700;
-  color: #1F2937;
+  color: var(--text-dark);
   background-color: #FFFBEB;
   padding: 10px 14px;
   border-radius: 8px;
   border-left: 4px solid #F59E0B;
   line-height: 1.5;
+}
+
+body.dark-mode .suggest-text {
+  background-color: #261E0F;
+  border-left-color: #F59E0B;
+  color: #FEF3C7;
 }
 
 .apply-clean-btn {
@@ -585,7 +683,7 @@ body {
   margin-top: 4px;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #047857;
+  color: var(--status-green);
 }
 
 /* ── 8. 댓글 입력창 & 판별 버튼 ── */
@@ -605,19 +703,21 @@ body {
 .comment-textarea {
   width: 100%;
   padding: 14px 16px;
-  border: 2px solid #E5E7EB;
+  background-color: var(--input-bg);
+  color: var(--text-dark);
+  border: 2px solid var(--border-color);
   border-radius: 12px;
   font-size: 1rem;
   font-family: inherit;
   resize: vertical;
   min-height: 90px;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s;
 }
 
 .comment-textarea:focus {
   border-color: var(--secondary-green);
-  box-shadow: 0 0 0 3px rgba(20, 108, 59, 0.15);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
 }
 
 .action-row {
@@ -658,9 +758,10 @@ body {
 
 /* ── 9. 하단 서비스 피드백 섹션 ── */
 .feedback-section {
-  background-color: #FFFFFF;
+  background-color: var(--card-bg);
   border-top: 2px solid var(--border-color);
   padding: 60px 20px;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 .feedback-inner {
@@ -697,7 +798,9 @@ body {
 
 .feedback-input {
   padding: 12px 14px;
-  border: 1.5px solid #E5E7EB;
+  background-color: var(--input-bg);
+  color: var(--text-dark);
+  border: 1.5px solid var(--border-color);
   border-radius: 8px;
   font-size: 0.9rem;
   outline: none;
@@ -707,7 +810,9 @@ body {
 
 .feedback-textarea {
   padding: 12px 14px;
-  border: 1.5px solid #E5E7EB;
+  background-color: var(--input-bg);
+  color: var(--text-dark);
+  border: 1.5px solid var(--border-color);
   border-radius: 8px;
   font-size: 0.9rem;
   font-family: inherit;
@@ -773,8 +878,8 @@ body {
 }
 
 .feedback-card {
-  background-color: #FAFCF9;
-  border: 1px solid #E5E7EB;
+  background-color: var(--card-sub-bg);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 14px 16px;
   display: flex;
@@ -785,7 +890,7 @@ body {
 
 .feedback-card:hover {
   transform: translateY(-1px);
-  border-color: #86EFAC;
+  border-color: var(--secondary-green);
 }
 
 .feedback-card-header {
@@ -807,7 +912,7 @@ body {
 
 .feedback-content {
   font-size: 0.9rem;
-  color: #374151;
+  color: var(--text-dark);
   word-break: break-word;
   white-space: pre-wrap;
 }
@@ -826,7 +931,8 @@ body {
   font-size: 0.85rem;
   color: var(--text-muted);
   background-color: var(--card-bg);
-  border-top: 1px solid #E5E7EB;
+  border-top: 1px solid var(--border-color);
+  transition: background-color 0.3s;
 }
 
 /* 반응형 모바일 */
@@ -835,22 +941,18 @@ body {
     flex-direction: column;
     height: auto;
     padding: 12px 20px;
-    gap: 8px;
+    gap: 10px;
+  }
+  .header-right {
+    flex-wrap: wrap;
+    justify-content: center;
   }
   .dashboard-widget {
     flex-direction: column;
     gap: 12px;
   }
-  .stat-divider {
-    display: none;
-  }
-  .stage-container {
-    flex-direction: column;
-  }
-  .speech-bubble::before {
-    display: none;
-  }
-  .feedback-inner {
-    grid-template-columns: 1fr;
-  }
+  .stat-divider { display: none; }
+  .stage-container { flex-direction: column; }
+  .speech-bubble::before { display: none; }
+  .feedback-inner { grid-template-columns: 1fr; }
 }
