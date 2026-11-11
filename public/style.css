@@ -1,9 +1,9 @@
 /* =====================================================
-   style.css - CleanTalk 전체 스타일시트
-   색상 체계: 딥 그린(#0B4F28) + 옐로우(#FACC15) + 화이트
+   style.css - CleanTalk 실시간 클린 댓글창 스타일시트
+   테마: 딥 그린(#0B4F28) + 옐로우(#FACC15) + 카드형 디자인
    ===================================================== */
 
-/* ── 전역 초기화 및 기본 설정 ── */
+/* ── 1. 전역 초기화 및 CSS 변수 ── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -11,39 +11,43 @@
 }
 
 :root {
-  /* 컬러 팔레트 (docs/02-ui-design-guide.md 기반) */
-  --primary-green: #0B4F28;
-  --secondary-green: #146C3B;
-  --accent-yellow: #FACC15;
-  --bg-light: #F8FAF9;
-  --text-dark: #111827;
-  --text-white: #FFFFFF;
-  --status-red: #EF4444;
-  --status-green: #22C55E;
-  --card-bg: #FFFFFF;
-  --border-color: #D1FAE5;
-}
-
-html {
-  scroll-behavior: smooth; /* 앵커 클릭 시 부드럽게 스크롤 */
+  --primary-green: #0B4F28;    /* 메인 딥 그린 */
+  --secondary-green: #146C3B;  /* 보조 그린 */
+  --light-green: #E8F5E9;      /* 연한 그린 배경 */
+  --accent-yellow: #FACC15;    /* 포인트 옐로우 */
+  --bg-light: #F4F7F5;         /* 전체 페이지 배경 */
+  --card-bg: #FFFFFF;          /* 카드 흰색 배경 */
+  --text-dark: #1F2937;        /* 본문 텍스트 색상 */
+  --text-muted: #6B7280;       /* 연한 보조 텍스트 */
+  --status-red: #EF4444;       /* 악플 경고 레드 */
+  --status-red-bg: #FEF2F2;    /* 악플 경고 배경 */
+  --status-green: #10B981;     /* 정상 댓글 그린 */
+  --status-green-bg: #ECFDF5;  /* 정상 등록 배경 */
+  --border-color: #E5E7EB;     /* 기본 테두리 색상 */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(11, 79, 40, 0.1);
 }
 
 body {
-  font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
   background-color: var(--bg-light);
   color: var(--text-dark);
   line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* 숨김 처리 유틸리티 클래스 */
+/* 숨김 유틸리티 */
 .hidden {
   display: none !important;
 }
 
-/* ── 1. 상단 공지 바 ── */
+/* ── 2. 상단 공지 바 ── */
 .top-banner {
   background-color: var(--primary-green);
-  color: var(--text-white);
+  color: #FFFFFF;
   text-align: center;
   padding: 8px 16px;
   font-size: 0.85rem;
@@ -51,634 +55,538 @@ body {
   letter-spacing: 0.02em;
 }
 
-/* ── 2. 네비게이션 헤더 ── */
+/* ── 3. 헤더 ── */
 .header {
   background-color: var(--card-bg);
   border-bottom: 2px solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 8px rgba(11, 79, 40, 0.08);
+  box-shadow: var(--shadow-sm);
 }
 
 .header-inner {
-  max-width: 1100px;
+  max-width: 860px;
   margin: 0 auto;
-  padding: 0 24px;
-  height: 64px;
+  padding: 0 20px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-/* 로고 */
 .logo {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--primary-green);
   text-decoration: none;
-  letter-spacing: -0.02em;
-}
-
-/* 내비게이션 링크 */
-.nav {
   display: flex;
-  gap: 24px;
+  align-items: center;
+  gap: 8px;
 }
 
-.nav a {
-  text-decoration: none;
-  color: var(--text-dark);
-  font-weight: 600;
-  font-size: 0.95rem;
-  padding: 6px 12px;
-  border-radius: 20px;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-.nav a:hover {
-  background-color: var(--primary-green);
-  color: var(--text-white);
-}
-
-/* ── 3. 히어로 & 악플 판별 섹션 ── */
-.hero {
-  padding: 60px 24px 80px;
-  text-align: center;
-  background: linear-gradient(180deg, #EDF7F0 0%, var(--bg-light) 100%);
-}
-
-/* 메인 타이틀 */
-.hero-title {
-  font-size: clamp(1.8rem, 4vw, 2.8rem); /* 화면 크기에 따라 유동적으로 변함 */
-  font-weight: 800;
+.header-badge {
+  background-color: var(--light-green);
   color: var(--primary-green);
-  line-height: 1.3;
-  margin-bottom: 16px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid #A7F3D0;
 }
 
-.hero-subtitle {
-  font-size: 1.05rem;
-  color: #4B7A5E;
-  margin-bottom: 40px;
-}
-
-/* 판별 카드 (입력 + 결과 영역을 감싸는 카드) */
-.analyze-card {
-  max-width: 700px;
+/* ── 4. 메인 컨테이너 ── */
+.main-container {
+  max-width: 860px;
+  width: 100%;
   margin: 0 auto;
-  background: var(--card-bg);
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(11, 79, 40, 0.12);
-  padding: 36px;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
+  padding: 30px 20px 60px 20px;
+  flex: 1;
 }
 
-/* 입력 그룹 */
-.input-group {
+/* 인트로 타이틀 */
+.intro-section {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.main-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--primary-green);
+  margin-bottom: 8px;
+}
+
+.main-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.main-subtitle strong {
+  color: var(--secondary-green);
+}
+
+/* ── 5. 댓글 입력 폼 카드 ── */
+.comment-input-card {
+  background-color: var(--card-bg);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: 24px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.comment-input-card:focus-within {
+  border-color: var(--secondary-green);
+  box-shadow: 0 0 0 3px rgba(20, 108, 59, 0.12);
+}
+
+/* 악플 입력 시 테두리 경고 효과 */
+.comment-input-card.warning-border {
+  border-color: var(--status-red) !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.18) !important;
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.card-info {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.input-form {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  text-align: left;
 }
 
-.input-label {
-  font-weight: 700;
-  color: var(--primary-green);
-  font-size: 0.95rem;
-}
-
-/* 댓글 입력창 */
-.comment-input {
+.input-row {
   width: 100%;
-  padding: 14px 16px;
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  font-size: 1rem;
-  font-family: inherit;
-  color: var(--text-dark);
-  resize: vertical;
-  transition: border-color 0.2s;
-  background-color: #FAFFF9;
 }
 
-.comment-input:focus {
+.nickname-input {
+  width: 220px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.9rem;
   outline: none;
+  transition: border-color 0.2s;
+}
+
+.nickname-input:focus {
   border-color: var(--secondary-green);
-  box-shadow: 0 0 0 3px rgba(20, 108, 59, 0.15);
 }
 
-/* 판별하기 버튼 (포인트 옐로우) */
-.analyze-btn {
-  padding: 14px 28px;
+.comment-textarea {
+  width: 100%;
+  padding: 14px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 85px;
+  outline: none;
+  line-height: 1.5;
+  transition: border-color 0.2s;
+}
+
+.comment-textarea:focus {
+  border-color: var(--secondary-green);
+}
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.enter-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.submit-btn {
   background-color: var(--accent-yellow);
-  color: var(--text-dark);
+  color: #111827;
   border: none;
-  border-radius: 12px;
-  font-size: 1.05rem;
-  font-weight: 800;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s, background-color 0.2s;
-  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 4px rgba(250, 204, 21, 0.3);
+  transition: transform 0.15s, background-color 0.15s;
 }
 
-.analyze-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(250, 204, 21, 0.5);
-  background-color: #EAB308;
+.submit-btn:hover {
+  background-color: #F59E0B;
+  transform: translateY(-1px);
 }
 
-/* 버튼 비활성화 상태 (로딩 중) */
-.analyze-btn:disabled {
+.submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
 
-/* ── 결과 표시 영역 ── */
-.result-area {
-  border-top: 2px dashed var(--border-color);
-  padding-top: 28px;
-  text-align: center;
-  min-height: 200px;
+/* ── 6. 알림 상자 (공통) ── */
+.notice-box {
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 16px;
+  animation: fadeIn 0.3s ease;
 }
 
-/* 대기 상태 */
-.result-idle {
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notice-content {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.idle-message {
-  color: #6B7280;
-  font-size: 1rem;
-}
-
-/* ── 로딩 상태 (분석 중 강아지 애니메이션) ── */
-.result-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
 }
 
-/* 분석 중 강아지 SVG 래퍼: 전체가 위아래로 통통 튀는 효과 */
+.dog-icon-wrap {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.dog-mini-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.notice-desc {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* (1) 로딩 박스 */
+.loading-box {
+  background-color: #EFF6FF;
+  border: 1.5px solid #BFDBFE;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+
 .dog-analyzing-wrap {
-  width: 180px;
-  height: 140px;
-  position: relative;
-  animation: dog-bounce-body 0.6s ease-in-out infinite alternate;
+  width: 80px;
+  height: 60px;
+  margin: 0 auto 8px auto;
 }
 
 .dog-analyzing-svg {
   width: 100%;
   height: 100%;
-  overflow: visible;
 }
 
-/* 꼬리 흔들기: SVG 내 .dog-tail 그룹을 회전 */
 .dog-tail {
-  transform-origin: 30px 85px;
-  animation: wag-tail 0.35s ease-in-out infinite alternate;
+  animation: wagTail 0.4s infinite alternate ease-in-out;
 }
 
-/* 왼쪽 앞발 움직임 */
-.dog-paw-left {
-  transform-origin: 57px 111px;
-  animation: paw-left 0.6s ease-in-out infinite alternate;
+@keyframes wagTail {
+  0% { transform: rotate(-10deg); }
+  100% { transform: rotate(15deg); }
 }
 
-/* 오른쪽 앞발 움직임 (반대 타이밍) */
-.dog-paw-right {
-  transform-origin: 89px 111px;
-  animation: paw-right 0.6s ease-in-out infinite alternate;
+.notice-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1E40AF;
 }
 
-/* ── 키프레임 정의 ── */
-@keyframes wag-tail {
-  from { transform: rotate(-25deg); }
-  to   { transform: rotate(25deg);  }
+/* (2) 🚨 악플 차단 경고 박스 */
+.warning-box {
+  background-color: var(--status-red-bg);
+  border: 2px solid var(--status-red);
 }
 
-@keyframes dog-bounce-body {
-  from { transform: translateY(0px);  }
-  to   { transform: translateY(-8px); }
-}
-
-@keyframes paw-left {
-  from { transform: translateY(0px)  rotate(0deg);   }
-  to   { transform: translateY(-6px) rotate(-10deg); }
-}
-
-@keyframes paw-right {
-  from { transform: translateY(-6px) rotate(10deg); }
-  to   { transform: translateY(0px)  rotate(0deg);  }
-}
-
-/* 분석 중 말풍선 */
-.analyzing-bubble {
-  background: var(--primary-green);
-  color: var(--text-white);
-  padding: 10px 20px;
-  border-radius: 20px;
-  font-size: 1rem;
-  font-weight: 700;
-  position: relative;
-  box-shadow: 0 4px 12px rgba(11, 79, 40, 0.3);
-}
-
-/* 말풍선 위쪽 꼭지 삼각형 */
-.analyzing-bubble::before {
-  content: "";
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-bottom-color: var(--primary-green);
-}
-
-/* 점 세 개 깜빡임 */
-.dot-ani {
-  display: inline-block;
-  animation: dot-blink 1.2s steps(1) infinite;
-}
-
-@keyframes dot-blink {
-  0%   { opacity: 0.2; }
-  33%  { opacity: 0.6; }
-  66%  { opacity: 1;   }
-  100% { opacity: 0.2; }
-}
-
-/* 결과 콘텐츠 */
-.result-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-}
-
-/* ── 신호등 ── */
-.traffic-light {
-  display: flex;
-  gap: 16px;
-  background: #1a1a1a;
-  padding: 12px 24px;
-  border-radius: 50px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-}
-
-/* 신호등 개별 전구 */
-.light {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  opacity: 0.2; /* 꺼진 상태 */
-  transition: opacity 0.4s, box-shadow 0.4s;
-}
-
-.red-light {
-  background-color: var(--status-red);
-}
-
-.green-light {
-  background-color: var(--status-green);
-}
-
-/* 켜진 상태 클래스 (JavaScript에서 추가됩니다) */
-.light.on {
-  opacity: 1;
-}
-
-/* 빨간불 켜졌을 때 글로우 효과 */
-.red-light.on {
-  box-shadow: 0 0 20px 8px rgba(239, 68, 68, 0.6);
-  animation: pulse-red 1.2s ease-in-out infinite;
-}
-
-/* 초록불 켜졌을 때 글로우 효과 */
-.green-light.on {
-  box-shadow: 0 0 20px 8px rgba(34, 197, 94, 0.6);
-}
-
-/* 빨간불 깜빡임 애니메이션 */
-@keyframes pulse-red {
-  0%, 100% { box-shadow: 0 0 20px 8px rgba(239, 68, 68, 0.6); }
-  50% { box-shadow: 0 0 30px 14px rgba(239, 68, 68, 0.9); }
-}
-
-/* ── 강아지 SVG ── */
-.dog-container {
-  width: 130px;
-  height: 130px;
-}
-
-.dog-svg {
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
-  animation: dog-bounce 0.5s ease;
-}
-
-/* 강아지 등장 애니메이션 */
-@keyframes dog-bounce {
-  0% { transform: scale(0.5); opacity: 0; }
-  70% { transform: scale(1.1); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-/* 결과 판별 문구 */
-.result-verdict {
-  font-size: 1.5rem;
+.warning-title {
+  font-size: 1.05rem;
   font-weight: 800;
-  margin-top: 4px;
-}
-
-/* 악플 판정 색상 */
-.verdict-malicious {
   color: var(--status-red);
 }
 
-/* 정상 판정 색상 */
-.verdict-clean {
-  color: var(--secondary-green);
-}
-
-/* AI 판별 이유 텍스트 */
-.result-reason {
+.warning-reason {
   font-size: 0.95rem;
-  color: #4B5563;
-  max-width: 400px;
-  background: var(--bg-light);
-  padding: 10px 16px;
-  border-radius: 10px;
-  border-left: 3px solid var(--secondary-green);
-}
-
-/* 재입력 안내 메시지 */
-.retry-message {
-  font-size: 1rem;
   font-weight: 600;
-  color: var(--secondary-green);
-  background: #D1FAE5;
-  padding: 8px 20px;
-  border-radius: 20px;
-  margin-top: 4px;
-  animation: fadeIn 0.5s ease;
+  color: #991B1B;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+.warning-tip {
+  font-size: 0.8rem;
+  color: #B91C1C;
+  margin-top: 2px;
 }
 
-/* ── 4. 하단 피드백 섹션 ── */
-.feedback-section {
-  background-color: var(--primary-green);
-  padding: 60px 24px;
-  color: var(--text-white);
-}
-
-.feedback-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  display: grid;
-  /* PC에서는 2열, 모바일에서는 1열로 자동 변환됩니다 */
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
-}
-
-/* 피드백 작성 폼 */
-.feedback-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  margin-bottom: 8px;
-}
-
-.feedback-subtitle {
-  font-size: 0.9rem;
-  opacity: 0.75;
-  margin-bottom: 24px;
-}
-
-.feedback-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* 닉네임 입력 (한 줄) */
-.feedback-input {
-  padding: 12px 16px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-radius: 10px;
-  background: rgba(255,255,255,0.12);
-  color: var(--text-white);
-  font-size: 0.95rem;
-  font-family: inherit;
-  transition: border-color 0.2s;
-}
-
-.feedback-input::placeholder {
-  color: rgba(255,255,255,0.55);
-}
-
-.feedback-input:focus {
-  outline: none;
-  border-color: var(--accent-yellow);
-  background: rgba(255,255,255,0.18);
-}
-
-/* 피드백 내용 (여러 줄) */
-.feedback-textarea {
-  padding: 12px 16px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-radius: 10px;
-  background: rgba(255,255,255,0.12);
-  color: var(--text-white);
-  font-size: 0.95rem;
-  font-family: inherit;
-  resize: vertical;
-  transition: border-color 0.2s;
-}
-
-.feedback-textarea::placeholder {
-  color: rgba(255,255,255,0.55);
-}
-
-.feedback-textarea:focus {
-  outline: none;
-  border-color: var(--accent-yellow);
-  background: rgba(255,255,255,0.18);
-}
-
-/* 피드백 전송 버튼 (옐로우) */
-.feedback-btn {
-  padding: 13px 24px;
-  background-color: var(--accent-yellow);
-  color: var(--text-dark);
-  border: none;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 800;
+.close-notice-btn {
+  background: transparent;
+  border: 1px solid #F87171;
+  color: #B91C1C;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: transform 0.15s, background-color 0.2s;
+  white-space: nowrap;
+  transition: background-color 0.15s;
 }
 
-.feedback-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  background-color: #EAB308;
+.close-notice-btn:hover {
+  background-color: #FEE2E2;
 }
 
-.feedback-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+/* (3) ✅ 정상 등록 성공 박스 */
+.success-box {
+  background-color: var(--status-green-bg);
+  border: 1.5px solid var(--status-green);
 }
 
-/* 피드백 전송 결과 메시지 */
-.feedback-status {
-  font-size: 0.9rem;
-  min-height: 20px;
-  font-weight: 600;
-  opacity: 0.9;
-}
-
-/* 피드백 목록 (우측) */
-.feedback-list-title {
-  font-size: 1.1rem;
+.success-title {
+  font-size: 1.05rem;
   font-weight: 700;
-  margin-bottom: 16px;
-  opacity: 0.9;
+  color: #065F46;
 }
 
-.feedback-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-height: 420px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-/* 스크롤바 스타일링 */
-.feedback-list::-webkit-scrollbar {
-  width: 4px;
-}
-.feedback-list::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.1);
-  border-radius: 10px;
-}
-.feedback-list::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.4);
-  border-radius: 10px;
-}
-
-/* 피드백 로딩 메시지 */
-.feedback-loading {
-  opacity: 0.6;
+.success-reason {
   font-size: 0.9rem;
+  color: #047857;
 }
 
-/* 개별 피드백 카드 */
-.feedback-card {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 14px 16px;
-  backdrop-filter: blur(4px);
-  transition: background 0.2s;
+/* ── 7. 실시간 댓글 목록 섹션 ── */
+.comments-section {
+  background-color: var(--card-bg);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
 }
 
-.feedback-card:hover {
-  background: rgba(255, 255, 255, 0.18);
-}
-
-/* 피드백 카드 헤더 (닉네임 + 날짜) */
-.feedback-card-header {
+.comments-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid #F3F4F6;
 }
 
-.feedback-nickname {
+.comments-count-title {
+  font-size: 1.15rem;
   font-weight: 700;
-  font-size: 0.9rem;
-  color: var(--accent-yellow);
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.feedback-date {
-  font-size: 0.75rem;
-  opacity: 0.6;
+.count-badge {
+  background-color: var(--primary-green);
+  color: #FFFFFF;
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 700;
 }
 
-.feedback-content {
-  font-size: 0.95rem;
-  line-height: 1.5;
-  opacity: 0.9;
-  word-break: break-all; /* 긴 단어도 줄 바꿈 */
-}
-
-/* 피드백 없음 메시지 */
-.no-feedback {
-  text-align: center;
-  opacity: 0.6;
-  font-size: 0.95rem;
-  padding: 20px 0;
-}
-
-/* ── 5. 푸터 ── */
-.footer {
-  background-color: #07331A;
-  color: rgba(255,255,255,0.6);
-  text-align: center;
-  padding: 20px;
+.refresh-btn {
+  background-color: #F3F4F6;
+  border: 1px solid var(--border-color);
+  color: var(--text-dark);
+  padding: 6px 12px;
+  border-radius: 8px;
   font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s;
 }
 
-/* ── 반응형 디자인 (모바일 대응) ── */
-@media (max-width: 768px) {
-  .header-inner {
-    padding: 0 16px;
+.refresh-btn:hover {
+  background-color: #E5E7EB;
+}
+
+/* 댓글 목록 카드들 */
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.comment-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  background-color: #FAFCF9;
+  border: 1px solid #E5E7EB;
+  transition: background-color 0.15s, transform 0.15s;
+}
+
+.comment-card:hover {
+  background-color: #F0FDF4;
+  transform: translateY(-1px);
+}
+
+/* 방금 추가된 새 댓글 하이라이트 애니메이션 */
+.comment-card.new-item {
+  animation: slideInHighlight 1.5s ease;
+}
+
+@keyframes slideInHighlight {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px);
+    background-color: #FEF08A; /* 옐로우 하이라이트 */
+  }
+  50% {
+    background-color: #FEF08A;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    background-color: #FAFCF9;
+  }
+}
+
+/* 강아지 프로필 아바타 */
+.comment-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--light-green);
+  border: 1.5px solid #A7F3D0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.comment-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.comment-nickname {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.clean-badge {
+  font-size: 0.75rem;
+  background-color: #D1FAE5;
+  color: #065F46;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.comment-time {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.comment-text {
+  font-size: 0.95rem;
+  color: #374151;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* 로딩 및 빈 상태 */
+.comments-loading, .no-comments {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* ── 8. 푸터 ── */
+.footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  margin-top: auto;
+}
+
+/* 반응형 모바일 최적화 */
+@media (max-width: 640px) {
+  .nickname-input {
+    width: 100%;
   }
 
-  .logo {
-    font-size: 1.2rem;
+  .button-row {
+    flex-direction: column-reverse;
+    gap: 10px;
+    align-items: stretch;
   }
 
-  .nav {
-    gap: 12px;
+  .submit-btn {
+    width: 100%;
+    justify-content: center;
   }
 
-  .nav a {
-    font-size: 0.85rem;
-    padding: 4px 8px;
+  .enter-hint {
+    text-align: center;
   }
 
-  .hero {
-    padding: 36px 16px 48px;
+  .notice-box {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .analyze-card {
-    padding: 24px 16px;
-  }
-
-  /* 모바일에서는 피드백 섹션을 1열로 */
-  .feedback-inner {
-    grid-template-columns: 1fr;
-    gap: 32px;
-  }
-
-  .feedback-list {
-    max-height: 280px;
+  .close-notice-btn {
+    align-self: flex-end;
   }
 }

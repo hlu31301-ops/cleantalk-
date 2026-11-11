@@ -1,186 +1,57 @@
 // =====================================================
-// public/app.js - CleanTalk 프론트엔드 로직
-// 역할: 악플 판별 버튼 클릭 처리 + 피드백 조회/저장 기능
-// 모든 API 호출은 /api/* 서버리스 함수를 통해 이루어지며,
-// API 키는 절대 이 파일에 없습니다 (보안 원칙 준수).
+// app.js - CleanTalk 실시간 클린 댓글창 프론트엔드 로직
+// 역할:
+//   1. 사용자가 댓글 작성 후 [등록] 클릭
+//   2. AI가 실시간으로 악플인지 판별 (/api/analyze)
+//   3. [악플이면] -> 등록 차단! 붉은 경고창과 사유 표시
+//   4. [클린하면] -> 통과! Supabase DB에 저장하고 실시간 목록 갱신
 // =====================================================
 
-// ── DOM 요소 참조 (HTML에서 필요한 요소들을 미리 가져옵니다) ──
+// ── 1. DOM 요소 가져오기 ──────────────────────────────
+// 사용자 입력 요소
+const nicknameInput    = document.getElementById("nickname-input");    // 닉네임 입력창
+const commentInput     = document.getElementById("comment-input");     // 댓글 본문 입력창
+const submitBtn        = document.getElementById("submit-btn");        // 댓글 등록 버튼
+const btnText          = document.getElementById("btn-text");          // 버튼 내부 텍스트
+const commentCard      = document.querySelector(".comment-input-card"); // 입력 카드 컨테이너
 
-// 악플 판별 관련
-const commentInput  = document.getElementById("comment-input");   // 댓글 입력창
-const analyzeBtn    = document.getElementById("analyze-btn");      // 판별하기 버튼
+// AI 실시간 알림 패널들
+const noticeLoading    = document.getElementById("notice-loading");    // 분석 중 로딩 박스
+const noticeWarning    = document.getElementById("notice-warning");    // 🚨 악플 차단 경고 박스
+const warningReason    = document.getElementById("warning-reason");    // 악플 차단 사유 텍스트
+const closeWarningBtn  = document.getElementById("close-warning-btn");  // 경고창 닫기 버튼
+const noticeSuccess    = document.getElementById("notice-success");    // ✅ 등록 성공 박스
+const successReason    = document.getElementById("success-reason");    // 성공 메시지 텍스트
 
-// 결과 표시 영역 상태 패널들
-const resultIdle    = document.getElementById("result-idle");      // 대기 상태
-const resultLoading = document.getElementById("result-loading");   // 로딩 상태
-const resultContent = document.getElementById("result-content");   // 판별 결과
-
-// 신호등 전구
-const redLight      = document.getElementById("red-light");
-const greenLight    = document.getElementById("green-light");
-
-// 강아지 캐릭터 SVG
-const dogAngry      = document.getElementById("dog-angry");
-const dogHappy      = document.getElementById("dog-happy");
-
-// 결과 텍스트
-const resultVerdict = document.getElementById("result-verdict");   // "악플입니다." / "악플이 아닙니다."
-const resultReason  = document.getElementById("result-reason");    // AI 판별 이유
-const retryMessage  = document.getElementById("retry-message");    // "다시 입력해주세요"
-
-// 피드백 관련
-const nicknameInput = document.getElementById("nickname-input");   // 닉네임 입력창
-const feedbackInput = document.getElementById("feedback-input");   // 피드백 내용 입력창
-const feedbackBtn   = document.getElementById("feedback-btn");     // 피드백 전송 버튼
-const feedbackStatus = document.getElementById("feedback-status"); // 전송 결과 메시지
-const feedbackList  = document.getElementById("feedback-list");    // 피드백 목록 컨테이너
+// 실시간 댓글 목록 요소
+const commentsCount    = document.getElementById("comments-count");    // 댓글 개수 뱃지
+const commentsList     = document.getElementById("comments-list");     // 댓글 목록 렌더링 영역
+const refreshBtn       = document.getElementById("refresh-btn");       // 새로고침 버튼
 
 
-// =====================================================
-// ── 1. 악플 판별 기능 ──
-// =====================================================
+// ── 2. 유틸리티 함수들 ───────────────────────────────
 
 /**
- * 결과 영역의 상태를 전환하는 함수
- * @param {"idle" | "loading" | "result"} state - 보여줄 상태
+ * 모든 알림 박스를 화면에서 숨기는 함수
  */
-function showResultState(state) {
-  // 먼저 세 가지 패널 모두 숨깁니다.
-  resultIdle.classList.add("hidden");
-  resultLoading.classList.add("hidden");
-  resultContent.classList.add("hidden");
-
-  // 요청한 상태의 패널만 보여줍니다.
-  if (state === "idle")    resultIdle.classList.remove("hidden");
-  if (state === "loading") resultLoading.classList.remove("hidden");
-  if (state === "result")  resultContent.classList.remove("hidden");
+function hideAllNotices() {
+  noticeLoading.classList.add("hidden");
+  noticeWarning.classList.add("hidden");
+  noticeSuccess.classList.add("hidden");
+  commentCard.classList.remove("warning-border");
 }
 
 /**
- * 판별 결과를 UI에 반영하는 함수
- * @param {boolean} isMalicious - true이면 악플, false이면 정상
- * @param {string} reason - AI가 설명하는 판별 이유
+ * 날짜 문자열을 읽기 쉬운 한국어 형식으로 변환합니다.
+ * 예: "2026. 11. 11. 오후 3:30"
+ * @param {string} isoString - ISO 형식 날짜 문자열
+ * @returns {string} 변환된 날짜 문자열
  */
-function displayResult(isMalicious, reason) {
-  // 먼저 신호등과 강아지를 초기화합니다 (이전 결과 제거).
-  redLight.classList.remove("on");
-  greenLight.classList.remove("on");
-  dogAngry.classList.add("hidden");
-  dogHappy.classList.add("hidden");
-  retryMessage.classList.add("hidden");
-
-  if (isMalicious) {
-    // ── 악플인 경우 ──
-    // 1. 빨간 경고등 점등 (깜빡임 효과 CSS로 처리됨)
-    redLight.classList.add("on");
-
-    // 2. 화난 강아지 표시
-    dogAngry.classList.remove("hidden");
-
-    // 3. 결과 문구 설정
-    resultVerdict.textContent = "⚠️ 악플입니다.";
-    resultVerdict.className = "result-verdict verdict-malicious"; // 빨간색 텍스트
-
-  } else {
-    // ── 악플이 아닌 경우 ──
-    // 1. 초록불 점등
-    greenLight.classList.add("on");
-
-    // 2. 웃는 강아지 표시
-    dogHappy.classList.remove("hidden");
-
-    // 3. 결과 문구 설정
-    resultVerdict.textContent = "✅ 악플이 아닙니다.";
-    resultVerdict.className = "result-verdict verdict-clean"; // 초록색 텍스트
-
-    // 4. "다시 입력해주세요" 안내 표시 + 입력창 초기화 후 포커스
-    retryMessage.classList.remove("hidden");
-    commentInput.value = "";
-    commentInput.focus();
-  }
-
-  // AI가 설명한 이유를 화면에 표시합니다.
-  resultReason.textContent = `💬 ${reason}`;
-
-  // 결과 패널을 보여줍니다.
-  showResultState("result");
-}
-
-/**
- * 판별하기 버튼 클릭 이벤트 핸들러
- */
-analyzeBtn.addEventListener("click", async () => {
-  const comment = commentInput.value.trim(); // 앞뒤 공백 제거
-
-  // ── 입력 검증: 빈 댓글은 API 호출 없이 안내 메시지만 띄웁니다 ──
-  if (!comment) {
-    alert("댓글을 먼저 입력해주세요.");
-    commentInput.focus();
-    return; // 여기서 함수 종료 (API 호출 안 함)
-  }
-
-  // ── 로딩 상태 시작 ──
-  analyzeBtn.disabled = true;           // 버튼 비활성화 (중복 클릭 방지)
-  analyzeBtn.textContent = "분석 중..."; // 버튼 텍스트 변경
-  showResultState("loading");           // 로딩 패널 표시
-
-  try {
-    // ── 서버리스 API 호출 (/api/analyze.js) ──
-    // fetch()는 브라우저에서 서버로 HTTP 요청을 보내는 함수입니다.
-    const response = await fetch("/api/analyze", {
-      method: "POST",                            // POST 방식으로 요청
-      headers: { "Content-Type": "application/json" }, // 데이터 형식 명시
-      body: JSON.stringify({ comment }),         // 댓글 내용을 JSON으로 변환하여 전송
-    });
-
-    // 서버 응답을 JSON 객체로 변환합니다.
-    const data = await response.json();
-
-    if (!response.ok) {
-      // 서버가 에러 응답을 보낸 경우 (400, 500 등)
-      throw new Error(data.error || "분석 중 오류가 발생했습니다.");
-    }
-
-    // ── 판별 결과를 UI에 반영합니다 ──
-    displayResult(data.isMalicious, data.reason);
-
-  } catch (error) {
-    // 네트워크 오류 또는 서버 에러 발생 시 사용자에게 안내합니다.
-    console.error("판별 오류:", error);
-    showResultState("idle");
-    alert(`오류가 발생했습니다: ${error.message}`);
-  } finally {
-    // 성공/실패 여부 상관없이 버튼을 원래 상태로 복구합니다.
-    analyzeBtn.disabled = false;
-    analyzeBtn.textContent = "🔍 판별하기";
-  }
-});
-
-// 엔터 키를 눌러도 판별이 실행되도록 합니다 (Ctrl+Enter 또는 Shift 없이 Enter).
-commentInput.addEventListener("keydown", (e) => {
-  // Ctrl+Enter 또는 단순 Enter(shift 없이)로 판별 실행
-  if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey) {
-    e.preventDefault(); // 기본 줄바꿈 동작 방지
-    analyzeBtn.click();
-  }
-});
-
-
-// =====================================================
-// ── 2. 피드백 기능 ──
-// =====================================================
-
-/**
- * 날짜를 "2026년 11월 11일 오후 1:30" 같은 한국어 형식으로 변환합니다.
- * @param {string} isoString - ISO 8601 날짜 문자열
- * @returns {string} 사람이 읽기 좋은 한국어 날짜 문자열
- */
-function formatDate(isoString) {
+function formatTime(isoString) {
+  if (!isoString) return "방금 전";
   const date = new Date(isoString);
   return date.toLocaleString("ko-KR", {
-    year: "numeric",
-    month: "long",
+    month: "numeric",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
@@ -188,150 +59,233 @@ function formatDate(isoString) {
 }
 
 /**
- * 피드백 카드 HTML 요소를 만들어 반환하는 함수
- * XSS(스크립트 삽입 공격) 방지를 위해 innerHTML 대신 textContent를 사용합니다.
- * @param {{ id, nickname, content, created_at }} feedback - 피드백 데이터
- * @returns {HTMLElement} 완성된 피드백 카드 DOM 요소
+ * 댓글 1개의 HTML 카드 요소를 만듭니다.
+ * XSS(악성 스크립트 삽입) 방지를 위해 innerHTML 대신 textContent를 철저히 사용합니다.
+ * @param {{ id, nickname, content, created_at }} item - 댓글 데이터
+ * @param {boolean} isNew - 방금 작성된 새 댓글인지 여부 (애니메이션 적용)
+ * @returns {HTMLElement} 완성된 댓글 카드 요소
  */
-function createFeedbackCard(feedback) {
-  // 카드 최상위 div 생성
+function createCommentCard(item, isNew = false) {
   const card = document.createElement("div");
-  card.className = "feedback-card";
+  card.className = isNew ? "comment-card new-item" : "comment-card";
 
-  // 카드 헤더 (닉네임 + 날짜)
-  const header = document.createElement("div");
-  header.className = "feedback-card-header";
+  // 강아지 프로필 아바타 아이콘
+  const avatar = document.createElement("div");
+  avatar.className = "comment-avatar";
+  avatar.textContent = "🐾";
+
+  // 댓글 본체 (메타 정보 + 내용)
+  const body = document.createElement("div");
+  body.className = "comment-body";
+
+  // 작성자 정보 행
+  const meta = document.createElement("div");
+  meta.className = "comment-meta";
 
   const nickname = document.createElement("span");
-  nickname.className = "feedback-nickname";
-  nickname.textContent = feedback.nickname || "익명"; // textContent → XSS 방지
+  nickname.className = "comment-nickname";
+  nickname.textContent = item.nickname || "익명";
 
-  const date = document.createElement("span");
-  date.className = "feedback-date";
-  date.textContent = formatDate(feedback.created_at);
+  // AI 클린 인증 뱃지
+  const badge = document.createElement("span");
+  badge.className = "clean-badge";
+  badge.textContent = "AI 클린인증 🛡️";
 
-  header.appendChild(nickname);
-  header.appendChild(date);
+  const time = document.createElement("span");
+  time.className = "comment-time";
+  time.textContent = formatTime(item.created_at);
 
-  // 피드백 내용
+  meta.appendChild(nickname);
+  meta.appendChild(badge);
+  meta.appendChild(time);
+
+  // 댓글 본문 내용 (textContent로 안전하게 처리)
   const content = document.createElement("p");
-  content.className = "feedback-content";
-  content.textContent = feedback.content; // textContent → XSS 방지 (innerHTML 금지!)
+  content.className = "comment-text";
+  content.textContent = item.content;
 
-  // 카드에 헤더와 내용을 추가합니다.
-  card.appendChild(header);
-  card.appendChild(content);
+  body.appendChild(meta);
+  body.appendChild(content);
+
+  card.appendChild(avatar);
+  card.appendChild(body);
 
   return card;
 }
 
-/**
- * 피드백 목록을 화면에 렌더링하는 함수
- * @param {Array} feedbacks - 피드백 객체 배열 (최신순으로 이미 정렬된 상태)
- */
-function renderFeedbacks(feedbacks) {
-  // 기존 목록을 완전히 비웁니다.
-  feedbackList.innerHTML = "";
 
-  if (!feedbacks || feedbacks.length === 0) {
-    // 피드백이 없으면 안내 문구를 표시합니다.
-    const empty = document.createElement("p");
-    empty.className = "no-feedback";
-    empty.textContent = "아직 피드백이 없습니다. 첫 번째 피드백을 남겨보세요! 🐾";
-    feedbackList.appendChild(empty);
-    return;
-  }
-
-  // 피드백 배열을 순서대로 카드로 만들어 목록에 추가합니다.
-  feedbacks.forEach((feedback) => {
-    const card = createFeedbackCard(feedback);
-    feedbackList.appendChild(card);
-  });
-}
+// ── 3. 실시간 댓글 목록 불러오기 ────────────────────
 
 /**
- * 서버에서 피드백 목록을 불러와 화면에 표시하는 함수
+ * Supabase DB에서 최신 댓글 목록을 가져와 화면에 표시합니다.
  */
-async function loadFeedbacks() {
+async function loadComments() {
   try {
-    // GET /api/feedback 호출 → Supabase에서 최신순으로 조회
+    // /api/feedback API를 호출하여 최신순으로 정렬된 데이터를 받아옵니다.
     const response = await fetch("/api/feedback");
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || "피드백을 불러오지 못했습니다.");
+      throw new Error(data.error || "댓글을 불러오는데 실패했습니다.");
     }
 
-    // 받아온 피드백 목록을 화면에 렌더링합니다.
-    renderFeedbacks(data.feedbacks);
+    const items = data.feedbacks || [];
+    commentsCount.textContent = items.length; // 댓글 개수 업데이트
+
+    // 목록 컨테이너 비우기
+    commentsList.innerHTML = "";
+
+    if (items.length === 0) {
+      // 등록된 댓글이 없을 때
+      commentsList.innerHTML = `
+        <div class="no-comments">
+          <p>아직 등록된 댓글이 없습니다. 첫 번째 클린 댓글을 남겨보세요! 🐾</p>
+        </div>
+      `;
+      return;
+    }
+
+    // 각 댓글을 카드로 만들어 화면에 추가
+    items.forEach((item) => {
+      const cardElement = createCommentCard(item, false);
+      commentsList.appendChild(cardElement);
+    });
 
   } catch (error) {
-    console.error("피드백 로딩 오류:", error);
-    feedbackList.innerHTML = `<p class="feedback-loading">피드백을 불러오는 중 오류가 발생했습니다.</p>`;
+    console.error("댓글 불러오기 오류:", error);
+    commentsList.innerHTML = `
+      <div class="comments-loading">
+        <p>⚠️ 댓글을 불러오는 중 문제가 발생했습니다: ${error.message}</p>
+      </div>
+    `;
   }
 }
 
-/**
- * 피드백 전송 버튼 클릭 이벤트 핸들러
- */
-feedbackBtn.addEventListener("click", async () => {
-  const nickname = nicknameInput.value.trim();
-  const content  = feedbackInput.value.trim();
 
-  // ── 입력 검증: 피드백 내용이 비어있으면 전송하지 않습니다 ──
-  if (!content) {
-    feedbackStatus.textContent = "⚠️ 피드백 내용을 입력해주세요.";
-    feedbackStatus.style.color = "#FACC15";
-    feedbackInput.focus();
-    return; // 함수 종료 (API 호출 안 함)
+// ── 4. 댓글 등록 및 실시간 악플 검사 핸들러 ─────────
+
+/**
+ * 댓글 등록 버튼을 눌렀을 때 실행되는 메인 로직입니다.
+ */
+async function handleCommentSubmit() {
+  const nickname = nicknameInput.value.trim() || "익명";
+  const comment  = commentInput.value.trim();
+
+  // (1) 빈 댓글 검증
+  if (!comment) {
+    alert("댓글 내용을 입력해 주세요!");
+    commentInput.focus();
+    return;
   }
 
-  // ── 전송 중 버튼 비활성화 ──
-  feedbackBtn.disabled = true;
-  feedbackBtn.textContent = "전송 중...";
-  feedbackStatus.textContent = "";
+  // (2) 알림창 초기화 및 로딩 시작
+  hideAllNotices();
+  noticeLoading.classList.remove("hidden"); // AI 분석 중 로딩 박스 표시
+  submitBtn.disabled = true;                // 버튼 비활성화 (중복 클릭 방지)
+  btnText.textContent = "AI 실시간 검사 중...";
 
   try {
-    // POST /api/feedback 호출 → Supabase에 저장
-    const response = await fetch("/api/feedback", {
+    // (3) STEP 1: AI 악플 실시간 판별 (/api/analyze)
+    const analyzeResponse = await fetch("/api/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nickname, content }), // 닉네임과 내용 전송
+      body: JSON.stringify({ comment }),
     });
 
-    const data = await response.json();
+    const analyzeResult = await analyzeResponse.json();
 
-    if (!response.ok) {
-      throw new Error(data.error || "피드백 전송에 실패했습니다.");
+    if (!analyzeResponse.ok) {
+      throw new Error(analyzeResult.error || "AI 분석 중 오류가 발생했습니다.");
     }
 
-    // ── 전송 성공 ──
-    feedbackStatus.textContent = "✅ 피드백이 등록되었습니다! 감사합니다 🐾";
-    feedbackStatus.style.color = "#FACC15";
+    // 로딩 숨기기
+    noticeLoading.classList.add("hidden");
 
-    // 입력창을 초기화합니다.
-    nicknameInput.value = "";
-    feedbackInput.value = "";
+    // (4) STEP 2: 판별 결과 분기 처리
+    if (analyzeResult.isMalicious === true) {
+      // 🚨 [악플로 판정된 경우] -> 등록 차단!
+      console.warn("악성 댓글 차단됨:", comment);
 
-    // 피드백 목록을 즉시 새로고침하여 방금 작성한 글이 맨 위에 보이도록 합니다.
-    await loadFeedbacks();
+      // 경고 사유 표시
+      warningReason.textContent = `사유: ${analyzeResult.reason || "타인에 대한 비방이나 부적절한 표현이 포함되어 있습니다."}`;
+      noticeWarning.classList.remove("hidden");
+
+      // 입력창에 빨간 테두리 및 흔들림 애니메이션 효과
+      commentCard.classList.add("warning-border");
+
+      // 댓글 등록 중단 (DB로 보내지 않고 여기서 종료)
+      commentInput.focus();
+      return;
+    }
+
+    // ✅ [클린한 댓글로 판정된 경우] -> STEP 3: DB에 저장 (/api/feedback)
+    const saveResponse = await fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nickname: nickname,
+        content: comment,
+      }),
+    });
+
+    const saveResult = await saveResponse.json();
+
+    if (!saveResponse.ok) {
+      throw new Error(saveResult.error || "댓글 저장에 실패했습니다.");
+    }
+
+    // 성공 배너 표시
+    successReason.textContent = `"${analyzeResult.reason || '건전하고 따뜻한 댓글입니다.'}"`;
+    noticeSuccess.classList.remove("hidden");
+
+    // 입력창 초기화
+    commentInput.value = "";
+
+    // 실시간 댓글 목록 새로고침 (방금 쓴 글이 맨 위에 즉시 반영됨)
+    await loadComments();
+
+    // 4초 후 성공 배너 부드럽게 닫기
+    setTimeout(() => {
+      noticeSuccess.classList.add("hidden");
+    }, 4000);
 
   } catch (error) {
-    console.error("피드백 전송 오류:", error);
-    feedbackStatus.textContent = `❌ 오류: ${error.message}`;
-    feedbackStatus.style.color = "#FCA5A5";
+    console.error("댓글 처리 중 오류:", error);
+    noticeLoading.classList.add("hidden");
+    alert(`오류가 발생했습니다: ${error.message}`);
   } finally {
-    // 성공/실패 상관없이 버튼을 원래 상태로 복구합니다.
-    feedbackBtn.disabled = false;
-    feedbackBtn.textContent = "💬 피드백 전송";
+    // 버튼 상태 원래대로 복구
+    submitBtn.disabled = false;
+    btnText.textContent = "🚀 댓글 등록하기";
+  }
+}
+
+
+// ── 5. 이벤트 리스너 등록 ────────────────────────────
+
+// 댓글 등록 버튼 클릭 시
+submitBtn.addEventListener("click", handleCommentSubmit);
+
+// 댓글 입력창에서 Enter 키를 누르면 등록 (단, Shift + Enter는 줄바꿈)
+commentInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault(); // 기본 개행 방지
+    handleCommentSubmit();
   }
 });
 
+// 경고 배너 닫기 버튼 클릭 시
+closeWarningBtn.addEventListener("click", () => {
+  noticeWarning.classList.add("hidden");
+  commentCard.classList.remove("warning-border");
+});
 
-// =====================================================
-// ── 3. 페이지 로드 시 초기 실행 ──
-// =====================================================
-// 페이지가 완전히 로드되면 피드백 목록을 불러옵니다.
+// 수동 새로고침 버튼 클릭 시
+refreshBtn.addEventListener("click", () => {
+  loadComments();
+});
+
+// 페이지가 처음 열렸을 때 댓글 목록 자동 로드
 document.addEventListener("DOMContentLoaded", () => {
-  loadFeedbacks();
+  loadComments();
 });
