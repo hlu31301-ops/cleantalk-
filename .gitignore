@@ -1,0 +1,21 @@
+# =====================================================
+# .gitignore - GitHub에 올리면 안 되는 파일 목록
+# =====================================================
+
+# 환경변수 파일 (API 키 보안상 절대 업로드 금지!)
+.env
+.env.local
+.env.*.local
+
+# Node.js 의존성 폴더 (npm install로 다시 생성 가능)
+node_modules/
+
+# Vercel 배포 캐시
+.vercel/
+
+# 운영체제 자동 생성 파일
+.DS_Store
+Thumbs.db
+
+
+.vercel

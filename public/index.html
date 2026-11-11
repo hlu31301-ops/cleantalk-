@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CleanTalk - AI 악플 판별기</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== 1. 상단 공지 바 (Top Banner) ===== -->
+  <!-- 딥 그린 배경의 얇은 공지 바입니다. -->
+  <div class="top-banner">
+    건전한 댓글 문화를 함께 만들어가는 AI 악플 판별 서비스 🐾
+  </div>
+
+  <!-- ===== 2. 네비게이션 헤더 ===== -->
+  <header class="header">
+    <div class="header-inner">
+      <!-- 좌측 로고 -->
+      <a href="#" class="logo">🐾 CleanTalk</a>
+      <!-- 우측 메뉴 -->
+      <nav class="nav">
+        <a href="#hero">판별하기</a>
+        <a href="#feedback-section">피드백 남기기</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== 3. 히어로 & 악플 판별 섹션 ===== -->
+  <main>
+    <section class="hero" id="hero">
+      <!-- 메인 타이틀 -->
+      <h1 class="hero-title">우리의 작은 배려로<br>함께 만드는 건강한 댓글 문화</h1>
+      <p class="hero-subtitle">댓글을 입력하면 AI가 악플인지 판별해 드립니다.</p>
+
+      <!-- 판별 카드 -->
+      <div class="analyze-card">
+        <!-- 댓글 입력 영역 -->
+        <div class="input-group">
+          <label for="comment-input" class="input-label">판별할 댓글을 입력하세요</label>
+          <textarea
+            id="comment-input"
+            class="comment-input"
+            placeholder="예: 오늘 날씨가 정말 좋네요! / 너 왜 이렇게 못하냐"
+            rows="4"
+          ></textarea>
+          <!-- 판별하기 버튼 (포인트 옐로우 색상) -->
+          <button id="analyze-btn" class="analyze-btn">🔍 판별하기</button>
+        </div>
+
+        <!-- 판별 결과 표시 영역 -->
+        <!-- 판별 전: 대기 상태 / 판별 후: 신호등 + 강아지 + 결과 문구 -->
+        <div class="result-area" id="result-area">
+          <!-- 대기 상태 (기본 표시) -->
+          <div class="result-idle" id="result-idle">
+            <!-- SVG 강아지 캐릭터 - 대기 상태 (평온한 표정) -->
+            <div class="dog-container">
+              <svg class="dog-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                <!-- 귀 (왼쪽) -->
+                <ellipse cx="30" cy="45" rx="16" ry="22" fill="#C8956C" transform="rotate(-15 30 45)" />
+                <!-- 귀 (오른쪽) -->
+                <ellipse cx="90" cy="45" rx="16" ry="22" fill="#C8956C" transform="rotate(15 90 45)" />
+                <!-- 머리 -->
+                <circle cx="60" cy="60" r="38" fill="#E8B887" />
+                <!-- 얼굴 (흰 부분) -->
+                <ellipse cx="60" cy="68" rx="24" ry="20" fill="#FFF3E0" />
+                <!-- 눈 (왼쪽) -->
+                <ellipse cx="46" cy="55" rx="5" ry="6" fill="#333" />
+                <circle cx="48" cy="53" r="1.5" fill="white" />
+                <!-- 눈 (오른쪽) -->
+                <ellipse cx="74" cy="55" rx="5" ry="6" fill="#333" />
+                <circle cx="76" cy="53" r="1.5" fill="white" />
+                <!-- 코 -->
+                <ellipse cx="60" cy="66" rx="7" ry="5" fill="#8B4513" />
+                <!-- 입 (평온한 표정 - 살짝 웃는) -->
+                <path d="M 50 74 Q 60 80 70 74" stroke="#8B4513" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                <!-- 볼터치 (왼쪽) -->
+                <ellipse cx="38" cy="68" rx="8" ry="5" fill="#FFB6C1" opacity="0.5" />
+                <!-- 볼터치 (오른쪽) -->
+                <ellipse cx="82" cy="68" rx="8" ry="5" fill="#FFB6C1" opacity="0.5" />
+              </svg>
+            </div>
+            <p class="idle-message">댓글을 입력하면 제가 판별해 드릴게요! 🐾</p>
+          </div>
+
+          <!-- 로딩 상태 (숨겨져 있다가 분석 중에 표시됨) -->
+          <div class="result-loading hidden" id="result-loading">
+            <!-- 분석 중 꼬리 흔드는 강아지 애니메이션 -->
+            <div class="dog-analyzing-wrap">
+              <svg class="dog-analyzing-svg" viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">
+                <!-- 꼬리 (흔들림 애니메이션은 CSS로 처리) -->
+                <g class="dog-tail" transform-origin="30 85">
+                  <path d="M 30 85 Q 10 70 5 50 Q 2 38 12 35 Q 22 32 25 45 Q 28 58 38 70 Z"
+                        fill="#C8956C" />
+                </g>
+                <!-- 몸통 -->
+                <ellipse cx="75" cy="88" rx="38" ry="26" fill="#E8B887" />
+                <!-- 앞발 (왼쪽) -->
+                <rect x="50" y="104" width="14" height="14" rx="7" fill="#C8956C" class="dog-paw-left" />
+                <!-- 앞발 (오른쪽) -->
+                <rect x="82" y="104" width="14" height="14" rx="7" fill="#C8956C" class="dog-paw-right" />
+                <!-- 목 -->
+                <ellipse cx="80" cy="68" rx="18" ry="14" fill="#E8B887" />
+                <!-- 귀 (왼쪽) -->
+                <ellipse cx="52" cy="45" rx="13" ry="18" fill="#C8956C" transform="rotate(-20 52 45)" />
+                <!-- 귀 (오른쪽) -->
+                <ellipse cx="108" cy="45" rx="13" ry="18" fill="#C8956C" transform="rotate(20 108 45)" />
+                <!-- 머리 -->
+                <circle cx="80" cy="48" r="30" fill="#E8B887" />
+                <!-- 얼굴 흰 부분 -->
+                <ellipse cx="80" cy="55" rx="18" ry="15" fill="#FFF3E0" />
+                <!-- 눈 (집중하는 표정 - 반쯤 감은) -->
+                <path d="M 68 44 Q 72 40 76 44" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                <path d="M 84 44 Q 88 40 92 44" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                <!-- 코 -->
+                <ellipse cx="80" cy="54" rx="6" ry="4" fill="#8B4513" />
+                <!-- 혀 (헉헉 내밀기) -->
+                <ellipse cx="80" cy="63" rx="6" ry="5" fill="#FF69B4" />
+                <path d="M 74 63 Q 80 70 86 63" fill="#FF69B4" />
+                <!-- 볼터치 -->
+                <ellipse cx="62" cy="56" rx="7" ry="5" fill="#FFB6C1" opacity="0.5" />
+                <ellipse cx="98" cy="56" rx="7" ry="5" fill="#FFB6C1" opacity="0.5" />
+                <!-- 돋보기 (분석 중 아이콘) -->
+                <circle cx="130" cy="35" r="14" fill="none" stroke="#FACC15" stroke-width="4" />
+                <circle cx="130" cy="35" r="8" fill="rgba(250,204,21,0.15)" />
+                <line x1="140" y1="45" x2="150" y2="55" stroke="#FACC15" stroke-width="4" stroke-linecap="round" />
+              </svg>
+            </div>
+            <!-- 분석 중 말풍선 -->
+            <div class="analyzing-bubble">
+              <span class="analyzing-dots">AI가 열심히 분석 중</span><span class="dot-ani">...</span>
+            </div>
+          </div>
+
+          <!-- 판별 결과 (숨겨져 있다가 결과 나오면 표시됨) -->
+          <div class="result-content hidden" id="result-content">
+            <!-- 신호등 -->
+            <div class="traffic-light" id="traffic-light">
+              <div class="light red-light" id="red-light"></div>
+              <div class="light green-light" id="green-light"></div>
+            </div>
+
+            <!-- 결과 강아지 캐릭터 (화남 / 웃음) -->
+            <div class="dog-container" id="result-dog-container">
+              <!-- 화난 강아지 SVG (악플일 때) -->
+              <svg class="dog-svg hidden" id="dog-angry" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="30" cy="45" rx="16" ry="22" fill="#C8956C" transform="rotate(-15 30 45)" />
+                <ellipse cx="90" cy="45" rx="16" ry="22" fill="#C8956C" transform="rotate(15 90 45)" />
+                <circle cx="60" cy="60" r="38" fill="#E8B887" />
+                <!-- 볼이 빨간 화난 강아지 -->
+                <ellipse cx="60" cy="68" rx="24" ry="20" fill="#FFF3E0" />
+                <!-- 화난 눈썹 (안쪽이 올라간 형태) -->
+                <line x1="38" y1="47" x2="52" y2="51" stroke="#333" stroke-width="3" stroke-linecap="round" />
+                <line x1="68" y1="51" x2="82" y2="47" stroke="#333" stroke-width="3" stroke-linecap="round" />
+                <!-- 눈 (찡그린) -->
+                <ellipse cx="46" cy="56" rx="5" ry="5" fill="#333" />
+                <ellipse cx="74" cy="56" rx="5" ry="5" fill="#333" />
+                <!-- 코 -->
+                <ellipse cx="60" cy="66" rx="7" ry="5" fill="#8B4513" />
+                <!-- 입 (화난 표정 - 아래로 처진) -->
+                <path d="M 50 76 Q 60 71 70 76" stroke="#8B4513" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                <!-- 볼터치 (빨간색 - 화남 표현) -->
+                <ellipse cx="36" cy="68" rx="10" ry="7" fill="#EF4444" opacity="0.4" />
+                <ellipse cx="84" cy="68" rx="10" ry="7" fill="#EF4444" opacity="0.4" />
+              </svg>
+
+              <!-- 웃는 강아지 SVG (악플 아닐 때) -->
+              <svg class="dog-svg hidden" id="dog-happy" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="30" cy="45" rx="16" ry="22" fill="#C8956C" transform="rotate(-15 30 45)" />
+                <ellipse cx="90" cy="45" rx="16" ry="22" fill="#C8956C" transform="rotate(15 90 45)" />
+                <circle cx="60" cy="60" r="38" fill="#E8B887" />
+                <ellipse cx="60" cy="68" rx="24" ry="20" fill="#FFF3E0" />
+                <!-- 눈웃음 (초승달 모양) -->
+                <path d="M 41 54 Q 46 49 51 54" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                <path d="M 69 54 Q 74 49 79 54" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                <!-- 코 -->
+                <ellipse cx="60" cy="66" rx="7" ry="5" fill="#8B4513" />
+                <!-- 입 (활짝 웃는) -->
+                <path d="M 50 72 Q 60 82 70 72" stroke="#8B4513" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                <!-- 볼터치 (핑크) -->
+                <ellipse cx="38" cy="66" rx="9" ry="6" fill="#FF69B4" opacity="0.5" />
+                <ellipse cx="82" cy="66" rx="9" ry="6" fill="#FF69B4" opacity="0.5" />
+                <!-- 하트 (왼쪽) -->
+                <text x="8" y="40" font-size="18" opacity="0.8">❤️</text>
+                <!-- 하트 (오른쪽) -->
+                <text x="90" y="35" font-size="14" opacity="0.7">💕</text>
+              </svg>
+            </div>
+
+            <!-- 결과 문구 -->
+            <p class="result-verdict" id="result-verdict"></p>
+            <p class="result-reason" id="result-reason"></p>
+            <!-- 악플 아닐 때 표시되는 재입력 안내 -->
+            <p class="retry-message hidden" id="retry-message">✏️ 다시 입력해주세요</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 4. 하단 피드백 섹션 ===== -->
+    <section class="feedback-section" id="feedback-section">
+      <div class="feedback-inner">
+        <!-- 피드백 작성 폼 (좌측) -->
+        <div class="feedback-form-wrap">
+          <h2 class="feedback-title">서비스 피드백 남기기</h2>
+          <p class="feedback-subtitle">로그인 없이 누구나 피드백을 남길 수 있어요!</p>
+          <div class="feedback-form">
+            <input
+              type="text"
+              id="nickname-input"
+              class="feedback-input"
+              placeholder="닉네임 (선택, 비워두면 익명)"
+              maxlength="20"
+            />
+            <textarea
+              id="feedback-input"
+              class="feedback-textarea"
+              placeholder="서비스에 대한 의견을 자유롭게 남겨주세요!"
+              rows="4"
+            ></textarea>
+            <button id="feedback-btn" class="feedback-btn">💬 피드백 전송</button>
+            <!-- 피드백 전송 결과 메시지 -->
+            <p class="feedback-status" id="feedback-status"></p>
+          </div>
+        </div>
+
+        <!-- 피드백 목록 (우측) -->
+        <div class="feedback-list-wrap">
+          <h3 class="feedback-list-title">📋 모든 피드백</h3>
+          <div class="feedback-list" id="feedback-list">
+            <!-- JavaScript로 동적 생성됩니다 -->
+            <p class="feedback-loading">피드백을 불러오는 중...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== 5. 최하단 푸터 ===== -->
+  <footer class="footer">
+    <p>© 2026 CleanTalk - AI 악플 판별 서비스. 건강한 댓글 문화를 위해 🐾</p>
+  </footer>
+
+  <!-- app.js를 마지막에 로드하여 DOM이 모두 준비된 후 실행합니다. -->
+  <script src="app.js"></script>
+</body>
+</html>
